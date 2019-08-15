@@ -3,7 +3,7 @@ package xyz.bekey.wxpay.response;
 /**
  * 统一下单接口响应
  */
-public class UnifiedorderResponse extends ResponseBase{
+public class UnifiedOrderResponse extends ResponseBase{
 
     /**
      * 以下信息必然有

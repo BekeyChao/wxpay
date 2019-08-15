@@ -2,11 +2,7 @@ package xyz.bekey.wxpay.response;
 
 import java.util.List;
 
-/**
- * 统计下单接口 支付结果回调
- */
-public class UnifiedorderCallback extends ResponseBase{
-
+public class OrderDetail extends ResponseBase{
     /**
      * 以下一定有
      */
@@ -221,4 +217,5 @@ public class UnifiedorderCallback extends ResponseBase{
     public void setCoupon_fees(List<Integer> coupon_fees) {
         this.coupon_fees = coupon_fees;
     }
+
 }

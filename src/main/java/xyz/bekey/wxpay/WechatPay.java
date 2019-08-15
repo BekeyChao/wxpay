@@ -4,8 +4,10 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.codec.digest.DigestUtils;
 import xyz.bekey.wxpay.request.RequestBase;
+import xyz.bekey.wxpay.response.OrderDetail;
+import xyz.bekey.wxpay.response.OrderQueryResponse;
 import xyz.bekey.wxpay.response.ResponseBase;
-import xyz.bekey.wxpay.response.UnifiedorderCallback;
+import xyz.bekey.wxpay.response.UnifiedOrderCallback;
 
 import java.nio.charset.Charset;
 import java.util.*;
@@ -47,7 +49,14 @@ public class WechatPay {
 
         if (response != null) {
             JSONObject r = XmlUtils.parseXml(response);
-            return r.toJavaObject(request.responseType());
+            T res = r.toJavaObject(request.responseType());
+
+            if (res instanceof OrderQueryResponse) {
+                OrderQueryResponse orderQueryResponse = (OrderQueryResponse)res;
+                packageOrderCoupon(orderQueryResponse, r);
+            }
+
+            return res;
         }
 
         return null;
@@ -59,7 +68,7 @@ public class WechatPay {
      * @return
      * @throws InvalidSignException 签名校验错误，按业务逻辑自行处理
      */
-    public UnifiedorderCallback unifiedorderCallback(String callbackXml) throws InvalidSignException{
+    public UnifiedOrderCallback unifiedorderCallback(String callbackXml) throws InvalidSignException{
         JSONObject result = XmlUtils.parseXml(callbackXml);
 
         SortedSet<String> keySet = new TreeSet<>(result.keySet());
@@ -72,8 +81,13 @@ public class WechatPay {
             throw new InvalidSignException("Sign校验错误");
         }
 
-        UnifiedorderCallback unifiedorderCallback = result.toJavaObject(UnifiedorderCallback.class);
+        UnifiedOrderCallback unifiedorderCallback = result.toJavaObject(UnifiedOrderCallback.class);
+        packageOrderCoupon(unifiedorderCallback, result);
 
+        return unifiedorderCallback;
+    }
+
+    private void packageOrderCoupon(OrderDetail o, JSONObject result) {
         // $n为下标，从0开始编号
         String coupon_type_$ = "coupon_type_$";
         List<String> coupon_types = new ArrayList<>();
@@ -92,12 +106,10 @@ public class WechatPay {
             break;
         }
         if (coupon_types.size() > 0) {
-            unifiedorderCallback.setCoupon_types(coupon_types);
-            unifiedorderCallback.setCoupon_ids(coupon_ids);
-            unifiedorderCallback.setCoupon_fees(coupon_fees);
+            o.setCoupon_types(coupon_types);
+            o.setCoupon_ids(coupon_ids);
+            o.setCoupon_fees(coupon_fees);
         }
-
-        return unifiedorderCallback;
     }
 
     /**

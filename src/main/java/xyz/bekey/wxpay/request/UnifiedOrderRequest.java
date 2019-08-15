@@ -2,7 +2,7 @@ package xyz.bekey.wxpay.request;
 
 import com.alibaba.fastjson.JSON;
 import xyz.bekey.wxpay.FailToPayException;
-import xyz.bekey.wxpay.response.UnifiedorderResponse;
+import xyz.bekey.wxpay.response.UnifiedOrderResponse;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -12,15 +12,15 @@ import java.util.Map;
  * 统一下单接口请求
  * 该实体类针对接口要求作了大量的修改，不是纯粹的pojo类，可以正常序列化，但不能反序列化
  */
-public class UnifiedorderRequest extends RequestBase<UnifiedorderResponse> {
+public class UnifiedOrderRequest extends RequestBase<UnifiedOrderResponse> {
 
     // 不需要证书
     public boolean needCert() {
         return false;
     }
 
-    public Class<UnifiedorderResponse> responseType() {
-        return UnifiedorderResponse.class;
+    public Class<UnifiedOrderResponse> responseType() {
+        return UnifiedOrderResponse.class;
     }
 
     public String apiUrl() {
