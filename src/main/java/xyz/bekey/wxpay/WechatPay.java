@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.codec.digest.DigestUtils;
 import xyz.bekey.wxpay.request.RequestBase;
-import xyz.bekey.wxpay.response.OrderDetail;
+import xyz.bekey.wxpay.response.Coupons;
 import xyz.bekey.wxpay.response.OrderQueryResponse;
 import xyz.bekey.wxpay.response.ResponseBase;
 import xyz.bekey.wxpay.response.UnifiedOrderCallback;
@@ -51,9 +51,10 @@ public class WechatPay {
             JSONObject r = XmlUtils.parseXml(response);
             T res = r.toJavaObject(request.responseType());
 
-            if (res instanceof OrderQueryResponse) {
-                OrderQueryResponse orderQueryResponse = (OrderQueryResponse)res;
+            if (res instanceof Coupons) {
+                Coupons orderQueryResponse = (Coupons) res;
                 packageOrderCoupon(orderQueryResponse, r);
+                return (T) orderQueryResponse;
             }
 
             return res;
@@ -64,11 +65,12 @@ public class WechatPay {
 
     /**
      * 统一下单接口 回调内容
+     *
      * @param callbackXml
      * @return
      * @throws InvalidSignException 签名校验错误，按业务逻辑自行处理
      */
-    public UnifiedOrderCallback unifiedorderCallback(String callbackXml) throws InvalidSignException{
+    public UnifiedOrderCallback unifiedorderCallback(String callbackXml) throws InvalidSignException {
         JSONObject result = XmlUtils.parseXml(callbackXml);
 
         SortedSet<String> keySet = new TreeSet<>(result.keySet());
@@ -87,39 +89,60 @@ public class WechatPay {
         return unifiedorderCallback;
     }
 
-    private void packageOrderCoupon(OrderDetail o, JSONObject result) {
+    private void packageOrderCoupon(Coupons o, JSONObject result) {
         // $n为下标，从0开始编号
         String coupon_type_$ = "coupon_type_$";
         List<String> coupon_types = new ArrayList<>();
+        // 下单时的优惠券字段
         String coupon_id_$ = "coupon_id_$";
         List<String> coupon_ids = new ArrayList<>();
         String coupon_fee_$ = "coupon_fee_$";
         List<Integer> coupon_fees = new ArrayList<>();
+
+        // 退款时的优惠券字段
+        String coupon_refund_fee_$ = "coupon_refund_fee_$";
+        List<Integer> coupon_refund_fees = new ArrayList<>();
+        String coupon_refund_id_$ = "coupon_refund_id_$";
+        List<String> coupon_refund_ids = new ArrayList<>();
+
         // 封装coupon数据
         for (int i = 0; i < 100; i++) {
             if (result.containsKey(coupon_type_$ + i)) {
-                coupon_types.add(result.getString( coupon_type_$ + i ));
-                coupon_ids.add(result.getString( coupon_id_$ + i ));
-                coupon_fees.add( result.getInteger( coupon_fee_$ + i ) );
+                coupon_types.add(result.getString(coupon_type_$ + i));
+            }
+            // 下单时的优惠券字段
+            if (result.containsKey(coupon_id_$ + i)) {
+                coupon_ids.add(result.getString(coupon_id_$ + i));
+                coupon_fees.add(result.getInteger(coupon_fee_$ + i));
                 continue;
             }
+            // 退款时的优惠券字段
+            if (result.containsKey(coupon_refund_id_$ + i)) {
+                coupon_refund_fees.add(result.getInteger(coupon_refund_fee_$ + i));
+                coupon_refund_ids.add(result.getString(coupon_refund_id_$ + i));
+                continue;
+            }
+
             break;
         }
-        if (coupon_types.size() > 0) {
-            o.setCoupon_types(coupon_types);
-            o.setCoupon_ids(coupon_ids);
-            o.setCoupon_fees(coupon_fees);
-        }
+
+        o.setCoupon_types(coupon_types);
+        o.setCoupon_ids(coupon_ids);
+        o.setCoupon_fees(coupon_fees);
+        o.setCoupon_refund_fees(coupon_refund_fees);
+        o.setCoupon_refund_ids(coupon_refund_ids);
+
     }
 
     /**
-     *  a-z：97-122
-        A-Z：65-90
-        0-9：48-57
+     * a-z：97-122
+     * A-Z：65-90
+     * 0-9：48-57
+     *
      * @return
      */
 
-    private String genNonceStr(){
+    private String genNonceStr() {
         Random random = new Random();
         StringBuilder sb = new StringBuilder("");
         for (int i = 0; i < 32; i++) {
@@ -131,7 +154,7 @@ public class WechatPay {
 
     private String sign(JSONObject params, SortedSet<String> keySet) {
         StringBuilder sb = new StringBuilder("");
-        for (String key: keySet) {
+        for (String key : keySet) {
             String value = params.getString(key);
             if (value != null && value.length() > 0) {
                 sb.append(key).append("=")

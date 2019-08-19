@@ -59,7 +59,7 @@ public class UnifiedOrderRequest extends RequestBase<UnifiedOrderResponse> {
     private String fee_type;
 
 
-    // 该字段常用于线下活动时的场景信息上报，支持上报实际门店信息(无实际需求，没有验证)
+    // 该字段常用于线下活动时的场景信息上报
     // H5 支付必填
     private Map<String, Object> scene_info;
     /**

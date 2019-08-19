@@ -80,7 +80,7 @@ class HttpUtils {
         try {
             sslcontext = SSLContexts
                     .custom()
-                    .loadKeyMaterial(initKeyStore(), wxpayConfig.getKey().toCharArray())
+                    .loadKeyMaterial(initKeyStore(), wxpayConfig.getMch_id().toCharArray())
                     .build();
         } catch (GeneralSecurityException e) {
             throw new FailToPayException("加载证书失败", e);
@@ -108,7 +108,7 @@ class HttpUtils {
                 throw new FailToPayException("证书路径错误");
             }
             instream = new FileInputStream(new File(path));
-            keyStore.load(instream, wxpayConfig.getKey().toCharArray());
+            keyStore.load(instream, wxpayConfig.getMch_id().toCharArray());
             return keyStore;
         } catch (Exception e) {
             throw new FailToPayException("加载证书错误", e);
