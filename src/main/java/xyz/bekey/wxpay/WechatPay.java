@@ -4,10 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.codec.digest.DigestUtils;
 import xyz.bekey.wxpay.request.RequestBase;
-import xyz.bekey.wxpay.response.Coupons;
-import xyz.bekey.wxpay.response.OrderQueryResponse;
-import xyz.bekey.wxpay.response.ResponseBase;
-import xyz.bekey.wxpay.response.UnifiedOrderCallback;
+import xyz.bekey.wxpay.response.*;
 
 import java.nio.charset.Charset;
 import java.util.*;
@@ -88,6 +85,35 @@ public class WechatPay {
 
         return unifiedorderCallback;
     }
+
+//    /**
+//     * 退款结果回调 因为需要替换jdk jar包等操作，比较麻烦，而且需求不大
+    //              可以通过退款查询等方式代替，暂不实现
+//     * @param o
+//     * @param result
+//     */
+//    public RefundCallback refundCallback(String str) {
+        //解密步骤如下：
+        //（1）对加密串A做base64解码，得到加密串B
+        //（2）对商户key做md5，得到32位小写key* ( key设置路径：微信商户平台(pay.weixin.qq.com)-->账户设置-->API安全-->密钥设置 )
+        //
+        //（3）用key*对加密串B做AES-256-ECB解密（PKCS7Padding）
+//        Base64 base64 = new Base64();
+//        byte[] bBytes = base64.decode(str.getBytes(Charset.forName("UTF-8")));
+//        String b = new String(bBytes, Charset.forName("UTF-8"));
+//
+//        String md5 = DigestUtils.md5Hex(wxpayConfig.getKey()).toLowerCase();
+////        new AESCipher.AES256_ECB_NoPadding();
+//        try {
+//            CipherSpi cipherSpi = Cipherspr
+//        } catch (NoSuchAlgorithmException e) {
+//            e.printStackTrace();
+//        } catch (NoSuchPaddingException e) {
+//            e.printStackTrace();
+//        }
+
+
+//    }
 
     private void packageOrderCoupon(Coupons o, JSONObject result) {
         // $n为下标，从0开始编号

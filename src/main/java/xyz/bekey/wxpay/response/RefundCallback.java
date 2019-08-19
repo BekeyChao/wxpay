@@ -1,5 +1,6 @@
 package xyz.bekey.wxpay.response;
 
+@Deprecated
 public class RefundCallback extends Coupons {
     /**
      * 以下一定有
