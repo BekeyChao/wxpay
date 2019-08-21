@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * 微信 代金券 特殊处理逻辑
  */
-public class Coupons extends ResponseBase{
+public abstract class Coupons extends ResponseBase{
 
     /**
      * 以下须经特殊处理 是优惠券相关字段

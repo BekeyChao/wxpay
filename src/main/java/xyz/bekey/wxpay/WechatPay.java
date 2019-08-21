@@ -48,16 +48,58 @@ public class WechatPay {
             JSONObject r = XmlUtils.parseXml(response);
             T res = r.toJavaObject(request.responseType());
 
+            /**
+             * 针对有优惠券类型的响应特殊处理
+             */
             if (res instanceof Coupons) {
                 Coupons orderQueryResponse = (Coupons) res;
                 packageOrderCoupon(orderQueryResponse, r);
                 return (T) orderQueryResponse;
             }
 
+            /**
+             * 针对退款查询的特殊处理
+             */
+            if (res instanceof RefundQueryResponse) {
+                RefundQueryResponse refundQueryResponse = (RefundQueryResponse)res;
+                packageRefundQueryResponse(refundQueryResponse, r);
+                return (T)refundQueryResponse;
+            }
+
             return res;
         }
 
         return null;
+    }
+
+    private void packageRefundQueryResponse(RefundQueryResponse refundQueryResponse, JSONObject r) {
+        // 凌乱的特殊处理
+        List<RefundQueryResponse.RefundOrder> refundOrders = new ArrayList<>();
+        int total = refundQueryResponse.getRefund_count();
+        for (int i = 0; i < total; i++) {
+            RefundQueryResponse.RefundOrder refundOrder = new RefundQueryResponse.RefundOrder();
+            refundOrder.setOut_refund_no(r.getString("out_refund_no_" + i));
+            refundOrder.setRefund_id(r.getString("refund_id_" + i));
+            refundOrder.setRefund_channel(r.getString("refund_channel_" + i));
+            refundOrder.setRefund_fee(r.getInteger("refund_fee_" + i));
+            refundOrder.setSettlement_refund_fee(r.getInteger("settlement_refund_fee_" + i));
+            refundOrder.setRefund_status(r.getString("refund_status_" + i));
+            refundOrder.setRefund_account(r.getString("refund_account_" + i));
+            refundOrder.setRefund_recv_accout(r.getString("refund_recv_accout_" + i));
+            refundOrder.setRefund_success_time(r.getString("refund_success_time_" + i));
+            refundOrder.setCoupon_refund_count(r.getInteger("coupon_refund_count_" + i));
+            refundOrder.setCoupon_refund_fee(r.getInteger("coupon_refund_fee_" + i));
+            // 优惠券
+            List<String> coupon_types = subscriptStringFiled("coupon_type_" + i + "_", r);
+            List<Integer> coupon_refund_fees = subscriptIntFiled("coupon_refund_fee_" + i + "_" + i, r);
+            List<String> coupon_refund_ids = subscriptStringFiled("coupon_refund_id_" + i + "_" + i, r);
+            refundOrder.setCoupon_types(coupon_types);
+            refundOrder.setCoupon_refund_fees(coupon_refund_fees);
+            refundOrder.setCoupon_refund_ids(coupon_refund_ids);
+
+            refundOrders.add(refundOrder);
+        }
+        refundQueryResponse.setRefundOrders(refundOrders);
     }
 
     /**
@@ -114,60 +156,71 @@ public class WechatPay {
 
 
 //    }
-
-    private void packageOrderCoupon(Coupons o, JSONObject result) {
-        // $n为下标，从0开始编号
-        String coupon_type_$ = "coupon_type_$";
-        List<String> coupon_types = new ArrayList<>();
-        // 下单时的优惠券字段
-        String coupon_id_$ = "coupon_id_$";
-        List<String> coupon_ids = new ArrayList<>();
-        String coupon_fee_$ = "coupon_fee_$";
-        List<Integer> coupon_fees = new ArrayList<>();
-
-        // 退款时的优惠券字段
-        String coupon_refund_fee_$ = "coupon_refund_fee_$";
-        List<Integer> coupon_refund_fees = new ArrayList<>();
-        String coupon_refund_id_$ = "coupon_refund_id_$";
-        List<String> coupon_refund_ids = new ArrayList<>();
-
-        // 封装coupon数据
+    private static List<String> subscriptStringFiled(String prix, JSONObject result) {
+        List<String> strings = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
-            if (result.containsKey(coupon_type_$ + i)) {
-                coupon_types.add(result.getString(coupon_type_$ + i));
-            }
-            // 下单时的优惠券字段
-            if (result.containsKey(coupon_id_$ + i)) {
-                coupon_ids.add(result.getString(coupon_id_$ + i));
-                coupon_fees.add(result.getInteger(coupon_fee_$ + i));
+            if (result.containsKey(prix + i)) {
+                strings.add(result.getString(prix + i));
                 continue;
             }
-            // 退款时的优惠券字段
-            if (result.containsKey(coupon_refund_id_$ + i)) {
-                coupon_refund_fees.add(result.getInteger(coupon_refund_fee_$ + i));
-                coupon_refund_ids.add(result.getString(coupon_refund_id_$ + i));
-                continue;
-            }
-
             break;
         }
+        if (strings.size() > 0)
+            return strings;
+        return null;
+    }
 
+    private static List<Integer> subscriptIntFiled(String prix, JSONObject result) {
+        List<Integer> ints = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            if (result.containsKey(prix + i)) {
+                ints.add(result.getInteger(prix + i));
+                continue;
+            }
+            break;
+        }
+        if (ints.size() > 0)
+            return ints;
+        return null;
+    }
+
+    /**
+     * 包装优惠券相关字段字段  -- 没有验证过
+     * @param o
+     * @param result
+     */
+    private void packageOrderCoupon(Coupons o, JSONObject result) {
+        // $n为下标，从0开始编号
+        String coupon_type_$ = "coupon_type_";
+        List<String> coupon_types = subscriptStringFiled(coupon_type_$, result);
         o.setCoupon_types(coupon_types);
-        o.setCoupon_ids(coupon_ids);
-        o.setCoupon_fees(coupon_fees);
-        o.setCoupon_refund_fees(coupon_refund_fees);
-        o.setCoupon_refund_ids(coupon_refund_ids);
 
+        // 下单时的优惠券字段
+        String coupon_id_$ = "coupon_id_";
+        List<String> coupon_ids = subscriptStringFiled(coupon_id_$, result);
+        o.setCoupon_ids(coupon_ids);
+
+        String coupon_fee_$ = "coupon_fee_";
+        List<Integer> coupon_fees = subscriptIntFiled(coupon_fee_$, result);
+        o.setCoupon_fees(coupon_fees);
+
+        // 退款时的优惠券字段
+        String coupon_refund_fee_$ = "coupon_refund_fee_";
+        List<Integer> coupon_refund_fees = subscriptIntFiled(coupon_refund_fee_$, result);
+        o.setCoupon_refund_fees(coupon_refund_fees);
+
+        String coupon_refund_id_$ = "coupon_refund_id_";
+        List<String> coupon_refund_ids = subscriptStringFiled(coupon_refund_id_$, result);
+        o.setCoupon_refund_ids(coupon_refund_ids);
     }
 
     /**
      * a-z：97-122
      * A-Z：65-90
      * 0-9：48-57
-     *
+     * 简易随机字符串生成法，由32位小写字母组成
      * @return
      */
-
     private String genNonceStr() {
         Random random = new Random();
         StringBuilder sb = new StringBuilder("");
