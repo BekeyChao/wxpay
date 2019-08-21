@@ -2,9 +2,12 @@
 ### 快速开始
 
 ```bash
-git clone yourpath
 
 cd yourpath
+
+git clone gitAddress
+
+cd wxpay
 
 mvn install
 
@@ -27,6 +30,8 @@ mvn install
 @Configuration
 public class WechatPayConfig {
 
+    @Value("${appid}")
+    private String appid;
     @Value("${mch_id}")
     private String mch_id; 
     @Value("${key}")
@@ -37,8 +42,8 @@ public class WechatPayConfig {
     @Bean
     public WechatPay wechatPay() {
         // wxConfig提供了两种构造方法， 默认签名类型为MD5， 默认微信支付服务地址取自官方文档
-        WxpayConfig wxConfig = new WxpayConfig(WechatApplication.Yepaofu_Subscribe.getAppid()
-                , mch_id, key, cert_path);
+        WxpayConfig wxConfig = new WxpayConfig(appid,
+                mch_id, key, cert_path);
         // 自定义 可以忽略不设
         wxConfig.setConnectTimeou(10000);
         wxConfig.setSocketTimeout(10000);
