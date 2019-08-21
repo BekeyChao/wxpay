@@ -2,7 +2,7 @@
 ### 快速开始
 
 ```bash
-git clone ..
+git clone yourpath
 
 cd yourpath
 
@@ -18,7 +18,7 @@ mvn install
     <version>version</version>
 </dependency>
 ```
-目前最新版本是0.1.0
+目前最新版本是0.0.4， jdk最低要求1.8，代码中并没有大量应用java8新内容，如果希望兼容，只需修改统一下单接口中的LocalDateTime类型
 
 ### 在Spring中使用的例子
 微信支付工具都通过实例化WechatPay类来使用，在Spring中建议注册为单例方便使用。
@@ -52,9 +52,9 @@ public class WechatPayConfig {
 public class PayService {
     @Autowired
     private WechatPay wechatPay;
-    
+    // 统一下单接口
     public void toPay() {
-        UnifiedorderRequest request = new UnifiedorderRequest();
+        UnifiedOrderRequest request = new UnifiedOrderRequest();
         request.setTotal_fee(100);
         request.setSpbill_create_ip("10.10.10.10");
         request.setOut_trade_no("test123");
@@ -64,7 +64,7 @@ public class PayService {
         request.setNotify_url("http://mycallbak.com");
         // some else...
                 
-        UnifiedorderResponse response = wechatPay.getWechatPayResponse(request);
+        UnifiedOrderResponse response = wechatPay.getWechatPayResponse(request);
         boolean success = response.isSuccess();
         if (success) {
             System.out.println(JSON.toJSONString(response)); 
@@ -72,10 +72,10 @@ public class PayService {
             System.out.println(response.getErr_code_des()); 
         }
     }
-    
+    // 支付结果回调，请从response中获取xml字符串
     public void handleCallback(String xml) { 
         try {
-            UnifiedorderCallback callback = wechatPay.unifiedorderCallback(xml);
+            UnifiedOrderCallback callback = wechatPay.unifiedorderCallback(xml);
             if (callback.isSuccess()) {
                 System.out.println(JSON.toJSONString(callback));
             } else {
@@ -89,6 +89,23 @@ public class PayService {
     
 }
 ```
+### 接口完成列表
+已完成接口
+* 统一下单接口 UnifiedOrderRequest
+* 查询订单接口 OrderQueryRequest
+* 申请退款接口（需要证书） RefundRequest
+* 退款查询接口 RefundQueryRequest
+* 支付结果通知 UnifiedOrderCallback
+  
+
+未完成接口
+* 关闭订单
+* 海关申报
+* 下载对账单
+* 下载资金账单
+* 交易保障
+* 拉取订单评价数据
+* 退款结果通知（因为需要AES-256-ECB解密，jdk默认不支持，暂时不实现了）
 
 ### 代码风格
 微信接口中会有大量的 javabean  xml  map 之间的转换，我处理的还是比较随意的，在xml -- javabean 之间主要通过fastjson进行转换，因为用起来比较顺手，所以也没在意效率的问题。

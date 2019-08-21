@@ -2,6 +2,9 @@ package xyz.bekey.wxpay.request;
 
 import xyz.bekey.wxpay.response.RefundResponse;
 
+/**
+ * 申请退款接口
+ */
 public class RefundRequest extends RequestBase<RefundResponse>{
 
     @Override

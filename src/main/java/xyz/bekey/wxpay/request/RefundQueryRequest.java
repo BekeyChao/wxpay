@@ -2,6 +2,9 @@ package xyz.bekey.wxpay.request;
 
 import xyz.bekey.wxpay.response.RefundQueryResponse;
 
+/**
+ * 退款查询接口
+ */
 public class RefundQueryRequest extends RequestBase<RefundQueryResponse>{
     @Override
     public boolean needCert() {

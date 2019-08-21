@@ -2,6 +2,9 @@ package xyz.bekey.wxpay.request;
 
 import xyz.bekey.wxpay.response.OrderQueryResponse;
 
+/**
+ * 查询订单接口
+ */
 public class OrderQueryRequest extends RequestBase<OrderQueryResponse>{
     @Override
     public boolean needCert() {
