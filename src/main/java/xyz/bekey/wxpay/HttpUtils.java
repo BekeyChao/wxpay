@@ -4,11 +4,12 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
 
 import javax.net.ssl.SSLContext;
@@ -78,8 +79,8 @@ class HttpUtils {
     private CloseableHttpClient initClient()  {
         SSLContext sslcontext;
         try {
-            sslcontext = SSLContexts
-                    .custom()
+            sslcontext = SSLContextBuilder.create()
+//                    .custom()
                     .loadKeyMaterial(initKeyStore(), wxpayConfig.getMch_id().toCharArray())
                     .build();
         } catch (GeneralSecurityException e) {
@@ -89,7 +90,7 @@ class HttpUtils {
         // 指定TLS版本
         SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
                 sslcontext, new String[] { "TLSv1" }, null,
-                SSLConnectionSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
+                new DefaultHostnameVerifier());
         // 设置httpclient的SSLSocketFactory
         CloseableHttpClient httpClient = HttpClients
                 .custom()
