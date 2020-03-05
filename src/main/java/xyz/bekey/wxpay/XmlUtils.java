@@ -15,7 +15,7 @@ class XmlUtils {
      * 微信支付xml响应
      * @param strXML XML字符串
      * @return XML数据转换后的json数据
-     * @throws Exception parse异常
+     * @throws FailToPayException parse异常
      */
     static JSONObject parseXml(String strXML) {
         JSONObject data = new JSONObject();

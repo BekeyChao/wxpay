@@ -128,6 +128,32 @@ public class WechatPay {
         return unifiedorderCallback;
     }
 
+    public WechatPrePay signAndPrePay(UnifiedOrderResponse response) {
+        WechatPrePay prePay = new WechatPrePay();
+        if (response.isSuccess()) {
+            //
+            prePay.setSuccess(true);
+            prePay.setTimestamp("" + System.currentTimeMillis() / 1000);
+            prePay.setNonceStr(response.getNonce_str());
+            prePay.setPackage("prepay_id=" + response.getPrepay_id());
+            prePay.setSignType(SignType.MD5.getType());
+
+            Map<String, String> map = new HashMap<>();
+            map.put("appId", response.getAppid());
+            map.put("timeStamp", prePay.getTimestamp());
+            map.put("nonceStr", prePay.getNonceStr());
+            map.put("package", prePay.getPackage());
+            map.put("signType", prePay.getSignType());
+
+            String sign = WechatSignUtils.sign(map, wxpayConfig.getKey());
+            prePay.setPaySign(sign);
+            return prePay;
+        }
+
+        prePay.setSuccess(false);
+        prePay.setError(response.getErr_code_des());
+        return prePay;
+    }
 //    /**
 //     * 退款结果回调 因为需要替换jdk jar包等操作，比较麻烦，而且需求不大
     //              可以通过退款查询等方式代替，暂不实现
