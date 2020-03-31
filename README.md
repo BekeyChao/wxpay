@@ -3,9 +3,9 @@
 
 ```bash
 
-cd yourpath
+cd 你的工作空间
 
-git clone gitAddress
+git clone https://github.com/BekeyChao/wxpay.git
 
 cd wxpay
 
@@ -21,7 +21,7 @@ mvn install
     <version>version</version>
 </dependency>
 ```
-目前最新版本是0.0.5， jdk最低要求1.8，代码中并没有大量应用java8新内容，如果希望兼容，只需修改统一下单接口中的LocalDateTime类型
+目前最新版本是0.0.6， jdk最低要求1.8，代码中并没有大量应用java8新内容，如果希望兼容，只需修改统一下单接口中的LocalDateTime类型
 
 ### 在Spring中使用的例子
 微信支付工具都通过实例化WechatPay类来使用，在Spring中建议注册为单例方便使用。
